@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <item
+        android:id="@+id/context_item1"
+        android:orderInCategory="100"
+        android:showAsAction="always"
+        android:title="绿色"
+        tools:ignore="AppCompatResource" />
+    <item
+        android:id="@+id/context_item2"
+        android:orderInCategory="100"
+        android:showAsAction="always"
+        android:title="黄色"
+        tools:ignore="AppCompatResource" />
+    <item
+        android:id="@+id/context_item3"
+        android:orderInCategory="100"
+        android:showAsAction="always"
+        android:title="红色"
+        tools:ignore="AppCompatResource" />
+    <item
+        android:id="@+id/context_item4"
+        android:orderInCategory="100"
+        android:showAsAction="always"
+        android:title="紫色"
+        tools:ignore="AppCompatResource" />
+
+    <item
+        android:id="@+id/context_item5"
+        android:orderInCategory="100"
+        android:showAsAction="always"
+        android:title="蓝色"
+        tools:ignore="AppCompatResource" />
+    <item
+        android:id="@+id/context_item6"
+        android:orderInCategory="100"
+        android:showAsAction="always"
+        android:title="青色"
+        tools:ignore="AppCompatResource" />
+    <item
+        android:id="@+id/context_item7"
+        android:orderInCategory="100"
+        android:showAsAction="always"
+        android:title="白色"
+        tools:ignore="AppCompatResource" />
+
+</menu>

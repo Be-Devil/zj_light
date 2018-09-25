@@ -1,0 +1,492 @@
+C51 COMPILER V9.54   MAIN                                                                  09/17/2018 18:30:45 PAGE 1   
+
+
+C51 COMPILER V9.54, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN main.OBJ
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND TABS(2)
+
+line level    source
+
+   1          /**************************************************************************************
+   2          *                 串口通信实验                          *
+   3          实现现象：下载程序后打开串口调试助手，将波特率设置为4800，选择发送的数据就可以显示
+   4                在串口助手上。
+   5          注意事项：无。                                          
+   6          ***************************************************************************************/
+   7          
+   8          #include "reg52.h"       //此文件中定义了单片机的一些特殊功能寄存器
+   9          #include <intrins.h>
+  10          
+  11          sbit LED1_Green=P0^0;
+  12          sbit LED1_Blue=P0^1;
+  13          sbit LED1_Red=P0^2;
+  14          
+  15          sbit LED2_Mode=P1^0;
+  16          sbit LED2_Speed=P1^1;
+  17          sbit LED2_Color=P1^2;
+  18          
+  19          sfr ISP_DATA = 0xe2;   
+  20          sfr ISP_ADDRH = 0xe3;     
+  21          sfr ISP_ADDRL = 0xe4;   
+  22          sfr ISP_CMD = 0xe5;   
+  23          sfr ISP_TRIG = 0xe6;      
+  24          sfr ISP_CONTR = 0xe7;
+  25          
+  26          typedef unsigned int u16;   
+  27          typedef unsigned char u8;
+  28          
+  29          int LED1_flash=0;
+  30          
+  31          int LED2_colour=0;
+  32          int LED2_lightness=0;
+  33          int LED2_speed=0;
+  34          int LED2_mode=0;
+  35          int LED2_flag=1;
+  36          int LED2_num=4;
+  37          int LED2=1;
+  38          
+  39          
+  40          u8 receiveData;
+  41          u8 u1_buff[4];
+  42          u8 JS_FLAG = 0;
+  43          
+  44          void  cc(u16 addr);
+  45          void  xcx(u16 addr,u8 dat);
+  46          void  xcx_f(u16 addr,u8 dat);
+  47          u8 dcx(u16 addr);
+  48          void  Q0();
+  49          void delay_1s(int i);
+  50          void delay(u16 i);
+  51          void UsartInit();
+  52          
+  53          /*******************************************************************************
+  54          * 函 数 名       : main
+  55          * 函数功能     : 主函数
+C51 COMPILER V9.54   MAIN                                                                  09/17/2018 18:30:45 PAGE 2   
+
+  56          * 输    入       : 无
+  57          * 输    出       : 无
+  58          *******************************************************************************/
+  59          void main()
+  60          { 
+  61   1        UsartInit();  //  串口初始化
+  62   1        
+  63   1        LED2_colour=dcx(0x2002);
+  64   1        LED2_lightness=dcx(0x2003);
+  65   1        LED2_speed=dcx(0x2004);
+  66   1        LED2_mode=dcx(0x2005);
+  67   1        LED2_flag=dcx(0x2006);
+  68   1        
+  69   1        while(1){
+  70   2            if(u1_buff[0]==0xab && u1_buff[3]==0x55){
+  71   3              if(u1_buff[1]==0x00){
+  72   4                switch(u1_buff[2]){
+  73   5                  case 0x00:
+  74   5                    cc(0x2000);
+  75   5                    xcx(0x2002,1);
+  76   5                    xcx(0x2003,1);
+  77   5                    xcx(0x2004,1);
+  78   5                    xcx(0x2005,0x21);
+  79   5                    xcx(0x2006,1);
+  80   5                    break;
+  81   5                  case 0x01:
+  82   5                    LED1_Green=0;
+  83   5                    LED1_Blue=0;
+  84   5                    LED1_Red=1;
+  85   5                    break;
+  86   5                  case 0x02:
+  87   5                    LED1_Green=1; 
+  88   5                    LED1_Blue=0;
+  89   5                    LED1_Red=0;
+  90   5                    break;
+  91   5                  case 0x03:
+  92   5                    LED1_Green=0;
+  93   5                    LED1_Blue=1;
+  94   5                    LED1_Red=0;
+  95   5                    break;
+  96   5                  case 0x04:
+  97   5                    LED1_Green=1;
+  98   5                    LED1_Blue=0;
+  99   5                    LED1_Red=1;
+ 100   5                    break;
+ 101   5                  case 0x05:
+ 102   5                    LED1_Green=0;
+ 103   5                    LED1_Blue=1;
+ 104   5                    LED1_Red=1;
+ 105   5                    break;
+ 106   5                  case 0x06:
+ 107   5                    LED1_Green=1;
+ 108   5                    LED1_Blue=1;
+ 109   5                    LED1_Red=0;
+ 110   5                    break;
+ 111   5                  case 0x07:
+ 112   5                    LED1_Green=1;
+ 113   5                    LED1_Blue=1;
+ 114   5                    LED1_Red=1;
+ 115   5                    break;
+ 116   5                  case 0x08:
+ 117   5                    LED1_flash=1;
+C51 COMPILER V9.54   MAIN                                                                  09/17/2018 18:30:45 PAGE 3   
+
+ 118   5                    break;
+ 119   5                  case 0x09:
+ 120   5                    LED1_Green=0; 
+ 121   5                    LED1_Blue=0;
+ 122   5                    LED1_Red=0;   
+ 123   5                    break;
+ 124   5                }
+ 125   4                if(u1_buff[2]!=0x08){
+ 126   5                  LED1_flash=0;
+ 127   5                }
+ 128   4              }
+ 129   3              
+ 130   3              if(u1_buff[1]==0x01){
+ 131   4                if(LED2==0&&u1_buff[2]!=0x18){
+ 132   5                  if(u1_buff[2]<0x15||u1_buff[2]==0x17){
+ 133   6                    LED2_Color=0;
+ 134   6                    delay(150);
+ 135   6                    LED2_Color=1;
+ 136   6                    delay(150);
+ 137   6                    LED2=1;
+ 138   6                  }else if(u1_buff[2]<0x30||u1_buff[2]==0x15){
+ 139   6                    LED2_Mode=0;
+ 140   6                    delay(150);
+ 141   6                    LED2_Mode=1;
+ 142   6                    delay(150);
+ 143   6                    LED2=1;
+ 144   6                  }
+ 145   5                }else if(u1_buff[2]<0x15){
+ 146   5                  if(LED2_flag==2){
+ 147   6                    LED2_Color=0;
+ 148   6                    delay(150);
+ 149   6                    LED2_Color=1;
+ 150   6                    delay(150);
+ 151   6                    LED2_flag=1;
+ 152   6                  }
+ 153   5                  while(LED2_colour!=u1_buff[2]){
+ 154   6                    LED2_colour = LED2_colour%20;
+ 155   6                    LED2_Color=0;
+ 156   6                    delay(150);
+ 157   6                    LED2_Color=1;
+ 158   6                    delay(150);
+ 159   6                    LED2_colour++;
+ 160   6                  }
+ 161   5                  xcx_f(0x2002,LED2_colour);
+ 162   5                }else if(u1_buff[2]<0x20)
+ 163   4                  switch(u1_buff[2]){
+ 164   5                    case 0x15:
+ 165   5                      LED2_Mode=0;
+ 166   5                      delay(200);
+ 167   5                      LED2_Mode=1;
+ 168   5                      if(LED2_flag==1){
+ 169   6                        LED2_flag=2;
+ 170   6                      }else{
+ 171   6                        LED2_mode++;
+ 172   6                        xcx_f(0x2003,LED2_mode);
+ 173   6                      }
+ 174   5                      break;
+ 175   5                    case 0x16:
+ 176   5      //                LED2_Speed=0;
+ 177   5      //                delay(200);
+ 178   5      //                LED2_Speed=1;
+ 179   5      //                LED2_colour++;
+C51 COMPILER V9.54   MAIN                                                                  09/17/2018 18:30:45 PAGE 4   
+
+ 180   5                      break;
+ 181   5                    case 0x17:
+ 182   5                      LED2_Color=0;
+ 183   5                      delay(150);
+ 184   5                      LED2_Color=1;
+ 185   5                      delay(150);
+ 186   5                      if(LED2_flag==2){
+ 187   6                        LED2_flag=1;
+ 188   6                      }else{
+ 189   6                        LED2_colour++;
+ 190   6                        xcx_f(0x2002,LED2_colour);
+ 191   6                      }
+ 192   5                      break;
+ 193   5                    case 0x18:
+ 194   5                      LED2_Speed=0;
+ 195   5                      delay_1s(2);
+ 196   5                      LED2_Speed=1;
+ 197   5                      LED2=0;
+ 198   5                      break;
+ 199   5                }else if(u1_buff[2]<0x30){
+ 200   5                  if(LED2_flag==1){
+ 201   6                    LED2_Mode=0;
+ 202   6                    delay(150);
+ 203   6                    LED2_Mode=1;
+ 204   6                    delay(150);
+ 205   6                    LED2_flag=2;
+ 206   6                  }
+ 207   5                  while(LED2_mode!=u1_buff[2]){
+ 208   6                    if(LED2_mode==0x2d)
+ 209   6                      LED2_mode=0x20;
+ 210   6                    LED2_Mode=0;
+ 211   6                    delay(150);
+ 212   6                    LED2_Mode=1;
+ 213   6                    delay(150);
+ 214   6                    LED2_mode++;
+ 215   6                  }
+ 216   5                  xcx_f(0x2005,LED2_mode);
+ 217   5               }else if(u1_buff[2]<0x50&&LED2==1){
+ 218   5                 switch(u1_buff[2]){
+ 219   6                    case 0x41:
+ 220   6                      if(LED2_flag==1&&LED2_lightness!=5){
+ 221   7                        LED2_num=4;
+ 222   7                        while(LED2_num--!=0){
+ 223   8                          LED2_Speed=0;
+ 224   8                          delay(150);
+ 225   8                          LED2_Speed=1;
+ 226   8                          delay(150);
+ 227   8                        }
+ 228   7                        LED2_lightness++;
+ 229   7                        xcx_f(0x2003,LED2_lightness);
+ 230   7                      }
+ 231   6                      break;
+ 232   6                    case 0x42:
+ 233   6                      if(LED2_flag==1&&LED2_lightness!=1){
+ 234   7                        if(LED2_lightness==0)
+ 235   7                          LED2_lightness=5;
+ 236   7                        LED2_Speed=0;
+ 237   7                        delay(150);
+ 238   7                        LED2_Speed=1;
+ 239   7                        LED2_lightness--;
+ 240   7                        xcx_f(0x2003,LED2_lightness);
+ 241   7                      }
+C51 COMPILER V9.54   MAIN                                                                  09/17/2018 18:30:45 PAGE 5   
+
+ 242   6                      break;
+ 243   6                    case 0x43:
+ 244   6                      if(LED2_flag==2&&LED2_speed!=5){
+ 245   7                        LED2_num=4;
+ 246   7                        while(LED2_num--!=0){
+ 247   8                          LED2_Speed=0;
+ 248   8                          delay(150);
+ 249   8                          LED2_Speed=1;
+ 250   8                          delay(150);
+ 251   8                        }
+ 252   7                        LED2_speed++;
+ 253   7                        xcx_f(0x2004,LED2_speed);
+ 254   7                      }
+ 255   6                      break;
+ 256   6                    case 0x44:
+ 257   6                      if(LED2_flag==2&&LED2_speed!=1){
+ 258   7                        LED2_Speed=0;
+ 259   7                        delay(150);
+ 260   7                        LED2_Speed=1;
+ 261   7                        LED2_speed--;
+ 262   7                        xcx_f(0x2004,LED2_speed);
+ 263   7                      }
+ 264   6                      break;
+ 265   6                }
+ 266   5              }
+ 267   4            }
+ 268   3            u1_buff[3]=0;
+ 269   3          }
+ 270   2            
+ 271   2          if(LED1_flash>0){
+ 272   3            switch(LED1_flash){
+ 273   4              case 0x01:
+ 274   4                LED1_Green=0;
+ 275   4                LED1_Blue=0;
+ 276   4                LED1_Red=1;
+ 277   4                break;
+ 278   4              case 0x02:
+ 279   4                LED1_Green=1; 
+ 280   4                LED1_Blue=0;
+ 281   4                LED1_Red=0;
+ 282   4                break;
+ 283   4              case 0x03:
+ 284   4                LED1_Green=0;
+ 285   4                LED1_Blue=1;
+ 286   4                LED1_Red=0;
+ 287   4                break;
+ 288   4              case 0x04:
+ 289   4                LED1_Green=1;
+ 290   4                LED1_Blue=0;
+ 291   4                LED1_Red=1;
+ 292   4                break;
+ 293   4              case 0x05:
+ 294   4                LED1_Green=0;
+ 295   4                LED1_Blue=1;
+ 296   4                LED1_Red=1;
+ 297   4                break;
+ 298   4              case 0x06:
+ 299   4                LED1_Green=1;
+ 300   4                LED1_Blue=1;
+ 301   4                LED1_Red=0;
+ 302   4                break;
+ 303   4              case 0x07:
+C51 COMPILER V9.54   MAIN                                                                  09/17/2018 18:30:45 PAGE 6   
+
+ 304   4                LED1_Green=1;
+ 305   4                LED1_Blue=1;
+ 306   4                LED1_Red=1;
+ 307   4                LED1_flash=1;
+ 308   4                break;
+ 309   4            }
+ 310   3            delay_1s(1);
+ 311   3            LED1_flash++;
+ 312   3          }
+ 313   2          
+ 314   2        }   
+ 315   1      }
+ 316          
+ 317          /*******************************************************************************
+ 318          * 函数名         : Usart() interrupt 4
+ 319          * 函数功能      : 串口通信中断函数
+ 320          * 输入           : 无
+ 321          * 输出           : 无
+ 322          *******************************************************************************/
+ 323          void Usart() interrupt 4
+ 324          {
+ 325   1        receiveData=SBUF;//出去接收到的数据
+ 326   1        RI = 0;//清除接收中断标志位
+ 327   1            
+ 328   1        if(receiveData == 0xab && JS_FLAG == 0)
+ 329   1          JS_FLAG = 1;
+ 330   1        
+ 331   1        if(JS_FLAG > 0){
+ 332   2          JS_FLAG++;
+ 333   2          u1_buff[JS_FLAG-2] = receiveData;
+ 334   2          
+ 335   2          SBUF=u1_buff[JS_FLAG-2];//将接收到的数据放入到发送寄存器
+ 336   2          while(!TI);      //等待发送数据完成
+ 337   2          TI=0;            //清除发送完成标志位
+ 338   2        }
+ 339   1        
+ 340   1        if(JS_FLAG==5)
+ 341   1          JS_FLAG = 0;
+ 342   1      }
+ 343          
+ 344          void cc(u16 addr)
+ 345          {       
+ 346   1          ISP_CONTR = 0x81;  
+ 347   1          ISP_CMD   = 0x03;                
+ 348   1          ISP_ADDRL = addr;       
+ 349   1          ISP_ADDRH = addr>>8;      
+ 350   1      //    EA =0;   
+ 351   1          ISP_TRIG = 0x46;          
+ 352   1          ISP_TRIG = 0xB9;         
+ 353   1          _nop_();
+ 354   1          Q0();
+ 355   1          delay(300);                                          
+ 356   1      }
+ 357          
+ 358          void xcx_f(u16 addr,u8 dat)
+ 359          {
+ 360   1      //  if(addr==0x2002&&LED2_flag==2){
+ 361   1      //    LED2_flag=1;
+ 362   1      //    xcx(0x2006,1);
+ 363   1      //  }
+ 364   1      //  else if(addr==0x2005&&LED2_flag==1){
+ 365   1      //    LED2_flag=2;
+C51 COMPILER V9.54   MAIN                                                                  09/17/2018 18:30:45 PAGE 7   
+
+ 366   1      //    xcx(0x2006,2);
+ 367   1      //  }
+ 368   1      //    xcx(addr,dat);
+ 369   1            cc(0x2000);
+ 370   1            xcx(0x2002,LED2_colour);
+ 371   1            xcx(0x2003,LED2_lightness);
+ 372   1            xcx(0x2004,LED2_speed);
+ 373   1            xcx(0x2005,LED2_mode);
+ 374   1            xcx(0x2006,LED2_flag);
+ 375   1      }
+*** WARNING C280 IN LINE 358 OF main.c: 'addr': unreferenced local variable
+*** WARNING C280 IN LINE 358 OF main.c: 'dat': unreferenced local variable
+ 376          
+ 377          
+ 378          void xcx(u16 addr,u8 dat)
+ 379          {     
+ 380   1          ISP_CONTR = 0x81;                  
+ 381   1          ISP_CMD   = 0x02;              
+ 382   1          ISP_ADDRL = addr;        
+ 383   1          ISP_ADDRH = addr>>8;      
+ 384   1          ISP_DATA  = dat;         
+ 385   1      //    EA = 0;
+ 386   1          ISP_TRIG = 0x46;         
+ 387   1          ISP_TRIG = 0xB9;         
+ 388   1          _nop_();
+ 389   1          Q0();      
+ 390   1          delay(300);   
+ 391   1        
+ 392   1      }
+ 393          
+ 394          u8 dcx(u16 addr)
+ 395          {   
+ 396   1          u8 dat;
+ 397   1             
+ 398   1              ISP_CONTR = 0x81;                  
+ 399   1          ISP_CMD   = 0x01;        
+ 400   1          ISP_ADDRL = addr;         
+ 401   1          ISP_ADDRH = addr>>8;      
+ 402   1      //    EA = 0;
+ 403   1          ISP_TRIG = 0x46;         
+ 404   1          ISP_TRIG = 0xB9;         
+ 405   1          _nop_();
+ 406   1          dat = ISP_DATA;                          
+ 407   1              Q0();                                                            
+ 408   1              return dat;
+ 409   1      }
+ 410          
+ 411          void Q0()
+ 412          {
+ 413   1          ISP_CONTR = 0;            
+ 414   1          ISP_CMD   = 0;            
+ 415   1          ISP_TRIG  = 0;           
+ 416   1      }
+ 417          
+ 418          
+ 419          /*******************************************************************************
+ 420          * 函数名         :UsartInit()
+ 421          * 函数功能       :设置串口
+ 422          * 输入           : 无
+ 423          * 输出           : 无
+ 424          *******************************************************************************/
+ 425          void UsartInit()
+C51 COMPILER V9.54   MAIN                                                                  09/17/2018 18:30:45 PAGE 8   
+
+ 426          {
+ 427   1        SCON=0X50;      //设置为工作方式1
+ 428   1        TMOD=0X20;      //设置计数器工作方式2
+ 429   1      //  PCON=0X80;      //波特率加倍
+ 430   1        TH1=0xfd;       //计数器初始值设置，注意波特率是4800的
+ 431   1        TL1=0xfd;
+ 432   1        ES=1;           //打开接收中断
+ 433   1        EA=1;           //打开总中断
+ 434   1        TR1=1;          //打开计数器
+ 435   1      }
+ 436          
+ 437          /*******************************************************************************
+ 438          * 函 数 名         : delay
+ 439          * 函数功能       : 延时函数，i=1时，大约延时10us
+ 440          *******************************************************************************/
+ 441          void delay(u16 i)
+ 442          {
+ 443   1        while(i--); 
+ 444   1      }
+ 445          
+ 446          void delay_1s(int i)
+ 447          {
+ 448   1          unsigned char a,b,c;
+ 449   1        for(;i>0;i--)
+ 450   1          for(c=10;c>0;c--)
+ 451   1            for(b=221;b>0;b--)
+ 452   1                for(a=207;a>0;a--);
+ 453   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1294    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     22       4
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  2 WARNING(S),  0 ERROR(S)

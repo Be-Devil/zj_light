@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <item
+        android:id="@+id/context_item11"
+        android:orderInCategory="100"
+        android:showAsAction="always"
+        android:title="七彩闪烁1"
+        tools:ignore="AppCompatResource" />
+    <item
+        android:id="@+id/context_item12"
+        android:orderInCategory="100"
+        android:showAsAction="always"
+        android:title="七彩闪烁2"
+        tools:ignore="AppCompatResource" />
+    <item
+        android:id="@+id/context_item13"
+        android:orderInCategory="100"
+        android:showAsAction="always"
+        android:title="七彩闪烁3"
+        tools:ignore="AppCompatResource" />
+    <item
+        android:id="@+id/context_item14"
+        android:orderInCategory="100"
+        android:showAsAction="always"
+        android:title="随机动态"
+        tools:ignore="AppCompatResource" />
+
+    <item
+        android:id="@+id/context_item15"
+        android:orderInCategory="100"
+        android:showAsAction="always"
+        android:title="绿红蓝"
+        tools:ignore="AppCompatResource" />
+    <item
+        android:id="@+id/context_item16"
+        android:orderInCategory="100"
+        android:showAsAction="always"
+        android:title="七彩呼吸灯"
+        tools:ignore="AppCompatResource" />
+</menu>
